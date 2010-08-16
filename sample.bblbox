@@ -1,0 +1,9 @@
+// @name  Sample
+// @desc  Sample description
+// @url   http://www.google.com
+
+new function() {
+	// context-menu items
+	SSB.contextMenu.add('Sample',	'http://www.google.com');
+}
+
