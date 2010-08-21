@@ -28,7 +28,6 @@ class Bubble:
         self.bblbox_loaded = Bblbox(bblbox_to_load) # loading bblbox file
         self.bblbox_loaded.parse() # parse file to extract metadata (name, description, url)
         self.webpage_to_load = self.bblbox_loaded.get_url() # store main url to load
-        self.browser = webkit.WebView() # WebKit browser instance creation
         self.is_visible = True
 
         # Gtk controls initialization
@@ -43,6 +42,7 @@ class Bubble:
         self.window.set_default_size(200, 300)
         self.window.set_resizable(True)
         self.window.set_icon_from_file("gnome-bubbles.svg")
+        self.browser = webkit.WebView() # WebKit browser instance creation
         box.pack_start(self.browser, expand=True, fill=True, padding=0)
         scrolled_window.add(box)
         self.window.add(scrolled_window)
