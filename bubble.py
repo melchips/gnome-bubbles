@@ -18,6 +18,9 @@
 import argparse
 import gtk
 import subprocess
+from collections import namedtuple
+import re
+import string
 import webkit
 from inspector import Inspector
 from bblbox import Bblbox
@@ -63,6 +66,13 @@ class Bubble:
         # Browser initial web page loading
         self.browser.open(self.webpage_to_load)
 
+        # Named Tuples initialization
+        self.context_menu_custom_item = namedtuple('context_menu_custom_item','name data disabled')
+
+        # Misc initializations
+        self.context_menu_custom_items = list()
+        self.context_menu_actions = dict()
+
         # Showing controls
         scrolled_window.show_all()
         self.window.show_all()
@@ -70,12 +80,26 @@ class Bubble:
     def right_click_event(self, icon, button, time):
         """ Display right click menu with SSB.contextMenu added items """
         menu = gtk.Menu()
+
+        # Adding context menu elements defined in bblxbox file
+        for item in self.context_menu_custom_items:
+            menu_item = gtk.MenuItem(item.name)
+            self.context_menu_actions[menu_item] = item.data
+            menu_item.connect("activate", self.contextMenu_click)
+            if item.disabled:
+                menu_item.set_sensitive(False)
+            menu.append(menu_item)
+
+        # Adding about menu
         about = gtk.MenuItem("About")
-        quit = gtk.MenuItem("Quit")
         about.connect("activate", self.show_about_dialog)
-        quit.connect("activate", gtk.main_quit)
         menu.append(about)
+
+        # Adding quit menu
+        quit = gtk.MenuItem("Quit")
+        quit.connect("activate", gtk.main_quit)
         menu.append(quit)
+
         menu.show_all()
 
         menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.status_icon)
@@ -117,7 +141,24 @@ class Bubble:
         """ Display browser's title or execute relevant SSB API instructions starting with 'GNOME-BUBBLE:' """
         if title != 'null':
             if len(title)>14 and title[0:14]=="GNOME-BUBBLES:":
-                print "TO IMPLEMENT : action" + title[14:len(title)]
+                arguments = re.split(r"(?<!\\),",title[14:len(title)])
+                command_name = arguments[0]
+
+                # Adding a javascript action or URL to context menu
+                if command_name == "SSB.contextMenu::add":
+                    try:
+                        add_title = self.unescape_data(arguments[1])
+                        add_action = self.unescape_data(arguments[2])
+                        add_disabled = self.unescape_data(arguments[3])
+                        if add_disabled == "true":
+                            add_disabled = True
+                        else:
+                            add_disabled = False
+                        self.context_menu_custom_items.append(self.context_menu_custom_item(add_title,add_action, add_disabled))
+                    except Exception as detail:
+                        print command_name + ' : invalid arguments', detail
+                else:
+                    print "TO IMPLEMENT : action " + command_name
             else:
                 self.status_icon.set_tooltip(title)
                 print "title="+title
@@ -131,6 +172,8 @@ class Bubble:
 
     def finished_loading(self, view, frame):
         """ When a new page is loaded, inject in browser SSB API and bblxbox file content (both javascript) """
+        self.context_menu_custom_items = list()
+        self.context_menu_actions = dict()
         self.browser.execute_script(self.read_javascript("gnome-bubbles-framework.js"))
         self.browser.execute_script(self.bblbox_loaded.get_data())
 
@@ -139,7 +182,15 @@ class Bubble:
         subprocess.call(['notify-send', head, msg])
 
     def contextMenu_click(self, widget):
-        print "click"
+        action = self.context_menu_actions[widget]
+        # Check if action is an argument or an URL
+        if re.match("(https?)://[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]", action, re.IGNORECASE):
+            self.browser.open(action)
+        else:
+            # Execute javascript code with a hack in case of passed function handler
+            self.browser.execute_script('__gnome_bubbles_func__ = ' + action + ';if (typeof __gnome_bubbles_func__ == \'function\') __gnome_bubbles_func__()')
+    def unescape_data(self, data):
+        return string.replace(data,'\,',',')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch a bubble')

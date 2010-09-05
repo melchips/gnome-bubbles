@@ -1,9 +1,17 @@
 // @name  Sample
 // @desc  Sample description
-// @url   http://www.google.com
+// @url   http://fedoraproject.org
 
 new function() {
 	// context-menu items
-	SSB.contextMenu.add('Sample',	'http://www.google.com');
+	SSB.contextMenu.add('Get Fedora',	'http://fedoraproject.org/get-fedora');
+	SSB.contextMenu.add('Javascript alert',	'alert("test")');
+    // Function handler
+    function alertMe() {
+	        var text = "Hello World!";
+	        alert(text);
+    }
+    SSB.contextMenu.add("Javascript alert callback",alertMe);
+    SSB.contextMenu.add("Disabled menu item",'',true);
 }
 

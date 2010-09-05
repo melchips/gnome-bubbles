@@ -21,10 +21,14 @@ SSB = function() {
         return true;
     }
     return {
-        sendCommandToPython: function(command) {
+        sendCommandToPython: function(object, command) {
             oldtitle = document.title;
-            document.title="GNOME-BUBBLES:"+command;
+            document.title="GNOME-BUBBLES:"+object+"::"+command;
             document.title=oldtitle;
+        },
+        escapeData: function(data) {
+            data = data.toString();
+            return data.replace(/,/g,'\\,');
         },
         notify: function(html,width,height,delay) {
             alert('notification');
@@ -34,14 +38,16 @@ SSB = function() {
 
 
 SSB.contextMenu = function() {
-    var bla;
+    var objectName = 'SSB.contextMenu';
     function privateFunction() {
         return true;
     }
     return {
-        add: function(foo, bar) {
-            //alert("add " + foo + " " + bar);
-            SSB.sendCommandToPython("add,"+foo+","+bar);
+        add: function(title, action, disable) {
+            title = SSB.escapeData(title);
+            action = SSB.escapeData(action);
+            if (!disable) {disable = false;}
+            SSB.sendCommandToPython(objectName,"add,"+title+","+action+","+disable);
         }
     };
 } ();
