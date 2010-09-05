@@ -155,8 +155,12 @@ class Bubble:
                         else:
                             add_disabled = False
                         self.context_menu_custom_items.append(self.context_menu_custom_item(add_title,add_action, add_disabled))
-                    except Exception as detail:
-                        print command_name + ' : invalid arguments', detail
+                    except:
+                        print command_name + ' : invalid arguments'
+                # Clear context menu entries
+                elif command_name == "SSB.contextMenu::clear":
+                        self.context_menu_custom_items = list()
+                        self.context_menu_actions = dict()
                 else:
                     print "TO IMPLEMENT : action " + command_name
             else:

@@ -13,5 +13,6 @@ new function() {
     }
     SSB.contextMenu.add("Javascript alert callback",alertMe);
     SSB.contextMenu.add("Disabled menu item",'',true);
+    SSB.contextMenu.add("Clear all menu entries",'SSB.contextMenu.clear()');
 }
 

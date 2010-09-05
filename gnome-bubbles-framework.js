@@ -48,6 +48,9 @@ SSB.contextMenu = function() {
             action = SSB.escapeData(action);
             if (!disable) {disable = false;}
             SSB.sendCommandToPython(objectName,"add,"+title+","+action+","+disable);
+        },
+        clear: function() {
+            SSB.sendCommandToPython(objectName,"clear");
         }
     };
 } ();
